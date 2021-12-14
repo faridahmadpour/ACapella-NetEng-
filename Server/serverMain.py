@@ -3,7 +3,8 @@ from socket import AF_INET, SOCK_STREAM, socket, SOL_SOCKET, SO_KEEPALIVE, TCP_K
 from argparse import ArgumentParser
 from multiCastSender import MultiCastSender
 from utils import handler
-import wave
+from pydub import AudioSegment
+from tqdm import tqdm
 from signal import signal, SIGINT
 
 
@@ -75,6 +76,7 @@ class serverClass:
         completeDir = os.path.join(os.getcwd(), "files")
         files = os.listdir(completeDir)
         files.sort()
+        map(lambda x: os.path.join("./files", x), files)
         clips = []
         # wrap the audio clip paths with tqdm if verbose
         files = tqdm(files, "Reading audio file") if verbose else files
