@@ -76,7 +76,8 @@ class serverClass:
         completeDir = os.path.join(os.getcwd(), "files")
         files = os.listdir(completeDir)
         files.sort()
-        map(lambda x: os.path.join("./files", x), files)
+        for index, value in enumerate(files):
+            files[index] = os.path.join("./files", value)
         clips = []
         # wrap the audio clip paths with tqdm if verbose
         files = tqdm(files, "Reading audio file") if verbose else files
