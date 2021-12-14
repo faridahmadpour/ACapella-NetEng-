@@ -31,9 +31,10 @@ class serverClass:
         signal(SIGINT, handler)
         # Server's main loop. Creates clientHandler's for each connecter
         print("Falling to Serving Loop, Press Ctrl+C To Terminate...")
+        clients = []
         try:
             while True:
-                if len(self.clientList) == max_clients:
+                if len(clients) == max_clients:
                     break
                 conn = None  # Each Client Socket To Be Stored In The Proper Object of Class ClientHandler
                 print("Awaiting New Clients...")
@@ -58,6 +59,7 @@ class serverClass:
                 )
                 client = ClientHandler(conn, ip, port)
                 self.clientList.append(client)
+                clients.append(conn)
                 client.start()
         except KeyboardInterrupt:
             print("Ctrl+C Issued Closing Server...")
@@ -65,7 +67,7 @@ class serverClass:
             if conn is not None:
                 conn.close()
             self.tcpServer.close()
-        map(lambda x: x.join(), clients)
+        map(lambda x: x.join(), self.clientList)
 
     def concatenate_audio_wave(self):
         completeDir = os.path.join(os.getcwd(), "files")
@@ -100,7 +102,7 @@ if __name__ == "__main__":
         "-a",
         "--server-addr",
         help="Listening address. Default localhost.",
-        default="0.0.0.0",
+        default="0.0.0.0"
     )
     parser.add_argument("-p", "--port",
                         help="Port Number", default=8080)
