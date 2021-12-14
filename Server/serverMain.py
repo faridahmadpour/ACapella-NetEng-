@@ -32,42 +32,36 @@ class serverClass:
         # Server's main loop. Creates clientHandler's for each connecter
         print("Falling to Serving Loop, Press Ctrl+C To Terminate...")
         clients = []
-        try:
-            while True:
-                if len(clients) == max_clients:
-                    break
-                conn = None  # Each Client Socket To Be Stored In The Proper Object of Class ClientHandler
-                print("Awaiting New Clients...")
-                # accept connection if there is any
-                # client_socket[Socket Object], client_address[Tuple Of Client (IP, PORT)]
-                (conn, (ip, port)) = self.tcpServer.accept()
-                # Set TCP KeepAlive Options
-                after_idle_sec = 1
-                interval_sec = 2
-                max_fails = 3
-                conn.setsockopt(
-                    SOL_SOCKET, SO_KEEPALIVE, 1
-                )
-                conn.setsockopt(
-                    IPPROTO_TCP, TCP_KEEPIDLE, after_idle_sec
-                )
-                conn.setsockopt(
-                    IPPROTO_TCP, TCP_KEEPINTVL, interval_sec
-                )
-                conn.setsockopt(
-                    IPPROTO_TCP, TCP_KEEPCNT, max_fails
-                )
-                client = ClientHandler(conn, ip, port)
-                self.clientList.append(client)
-                clients.append(conn)
-                client.start()
-        except KeyboardInterrupt:
-            print("Ctrl+C Issued Closing Server...")
-        finally:
-            if conn is not None:
-                conn.close()
-            self.tcpServer.close()
+        while True:
+            if len(clients) == max_clients:
+                break
+            conn = None  # Each Client Socket To Be Stored In The Proper Object of Class ClientHandler
+            print("Awaiting New Clients...")
+            # accept connection if there is any
+            # client_socket[Socket Object], client_address[Tuple Of Client (IP, PORT)]
+            (conn, (ip, port)) = self.tcpServer.accept()
+            # Set TCP KeepAlive Options
+            after_idle_sec = 1
+            interval_sec = 2
+            max_fails = 3
+            conn.setsockopt(
+                SOL_SOCKET, SO_KEEPALIVE, 1
+            )
+            conn.setsockopt(
+                IPPROTO_TCP, TCP_KEEPIDLE, after_idle_sec
+            )
+            conn.setsockopt(
+                IPPROTO_TCP, TCP_KEEPINTVL, interval_sec
+            )
+            conn.setsockopt(
+                IPPROTO_TCP, TCP_KEEPCNT, max_fails
+            )
+            client = ClientHandler(conn, ip, port)
+            self.clientList.append(client)
+            clients.append(conn)
+            client.start()
         map(lambda x: x.join(), self.clientList)
+        self.tcpServer.close()
 
     def merged_files(self):
         completeDir = os.path.join(os.getcwd(), "files")

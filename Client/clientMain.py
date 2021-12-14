@@ -38,17 +38,3 @@ with open(filename, "rb") as f:
         progress.update(len(bytes_read))
 # close the socket
 s.close()
-
-if __name__ == "__main__":
-    parser = ArgumentParser(description="Tic tac toe game server")
-    parser.add_argument(
-        "-a",
-        "--server-addr",
-        help="Listening address. Default localhost.",
-        default="0.0.0.0",
-    )
-    args = parser.parse_args()
-    server = serverClass()
-    server.listen((args.server_addr, 8080))
-    server.loop()
-    print("Terminating...")
