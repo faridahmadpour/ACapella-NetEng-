@@ -1,5 +1,5 @@
 from clientHandler import *
-from socket import AF_INET, SOCK_STREAM, socket
+from socket import AF_INET, SOCK_STREAM, socket, SOL_SOCKET, SO_KEEPALIVE, TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT, IPPROTO_TCP, SO_REUSEADDR
 from argparse import ArgumentParser
 from multiCastSender import MultiCastSender
 from utils import handler
@@ -17,7 +17,7 @@ class serverClass:
         # Creates a listener socket
         self.sock_addr = sock_addr  # Is A Tuple (TCP_IP, TCP_PORT)
         self.tcpServer = socket(AF_INET, SOCK_STREAM)  # TCP Socket
-        self.tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.tcpServer.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.tcpServer.bind(sock_addr)
         # Enabling our server to accept connections
         # 5 here is the number of unaccepted connections that
@@ -46,16 +46,16 @@ class serverClass:
                 interval_sec = 2
                 max_fails = 3
                 conn.setsockopt(
-                    socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1
+                    SOL_SOCKET, SO_KEEPALIVE, 1
                 )
                 conn.setsockopt(
-                    socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, after_idle_sec
+                    IPPROTO_TCP, TCP_KEEPIDLE, after_idle_sec
                 )
                 conn.setsockopt(
-                    socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, interval_sec
+                    IPPROTO_TCP, TCP_KEEPINTVL, interval_sec
                 )
                 conn.setsockopt(
-                    socket.IPPROTO_TCP, socket.TCP_KEEPCNT, max_fails
+                    IPPROTO_TCP, TCP_KEEPCNT, max_fails
                 )
                 client = ClientHandler(conn, ip, port)
                 self.clientList.append(client)
@@ -110,8 +110,8 @@ if __name__ == "__main__":
                         help="Number of clients", default=2)
     args = parser.parse_args()
     server = serverClass()
-    server.listen((args.server_addr, args.port))
-    server.loop(args.clients, args.max_clients)
+    server.listen((args.server_addr, int(args.port)))
+    server.loop(args.max_clients)
     server.merged_files()
     # server.multicast()
     print("Terminating...")

@@ -29,7 +29,7 @@ class MultiCastSender:
 
         sender.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
         sender.setsockopt(
-            socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(hostip)
+            socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self.host_ip)
         )
 
         sender.sendto(self.msg_buf, mcgrp)
