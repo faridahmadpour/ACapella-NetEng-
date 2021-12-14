@@ -26,7 +26,7 @@ class serverClass:
         print("Socket %s:%d is In Listening State" %
               (self.tcpServer.getsockname()))
 
-    def loop(self, clients: list, max_clients: int):
+    def loop(self, max_clients: int):
         # Tell Python to run the handler() function when SIGINT is recieved
         signal(SIGINT, handler)
         # Server's main loop. Creates clientHandler's for each connecter
@@ -63,20 +63,54 @@ class serverClass:
         map(lambda x: x.join(), self.clientList)
         self.tcpServer.close()
 
-    def merged_files(self):
+    def merged_files(self, verbose=1):
+        """
+        Concatenates two or more audio files into one audio file using PyDub library
+        and save it to `output_path`. A lot of extensions are supported, more on PyDub's doc.
+        """
+        def get_file_extension(filename):
+            """A helper function to get a file's extension"""
+            return os.path.splitext(filename)[1].lstrip(".")
+
         completeDir = os.path.join(os.getcwd(), "files")
         files = os.listdir(completeDir)
         files.sort()
-        data = []
-        for clip in files:
-            w = wave.open(clip, "rb")
-            data.append([w.getparams(), w.readframes(w.getnframes())])
-            w.close()
-        output = wave.open(os.getcwd(), "wb")
-        output.setparams(data[0][0])
-        for i in range(len(data)):
-            output.writeframes(data[i][1])
-        output.close()
+        clips = []
+        # wrap the audio clip paths with tqdm if verbose
+        files = tqdm(files, "Reading audio file") if verbose else files
+        for clip_path in files:
+            # get extension of the audio file
+            extension = get_file_extension(clip_path)
+            # load the audio clip and append it to our list
+            clip = AudioSegment.from_file(clip_path, extension)
+            clips.append(clip)
+    
+        final_clip = clips[0]
+        range_loop = tqdm(list(range(1, len(clips))), "Concatenating audio") if verbose else range(1, len(clips))
+        for i in range_loop:
+            # looping on all audio files and concatenating them together
+            # ofc order is important
+            final_clip = final_clip + clips[i]
+        # export the final clip
+        final_clip_extension = get_file_extension("merged.mp3")
+        if verbose:
+            print("Exporting resulting audio file to merged.mp3")
+        final_clip.export("merged.mp3", format=final_clip_extension)
+
+        # completeDir = os.path.join(os.getcwd(), "files")
+        # files = os.listdir(completeDir)
+        # files.sort()
+        # data = []
+        # for clip in files:
+        #     clip = os.path.join("./files", clip)
+        #     w = wave.open(clip, "rb")
+        #     data.append([w.getparams(), w.readframes(w.getnframes())])
+        #     w.close()
+        # output = wave.open("merged.mp3")
+        # output.setparams(data[0][0])
+        # for i in range(len(data)):
+        #     output.writeframes(data[i][1])
+        # output.close()
 
 
     def multicast(self):
@@ -105,7 +139,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     server = serverClass()
     server.listen((args.server_addr, int(args.port)))
-    server.loop(args.max_clients)
+    server.loop(int(args.max_clients))
     server.merged_files()
     # server.multicast()
     print("Terminating...")
