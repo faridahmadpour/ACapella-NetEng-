@@ -69,7 +69,7 @@ class serverClass:
             self.tcpServer.close()
         map(lambda x: x.join(), self.clientList)
 
-    def concatenate_audio_wave(self):
+    def merged_files(self):
         completeDir = os.path.join(os.getcwd(), "files")
         files = os.listdir(completeDir)
         files.sort()
@@ -112,6 +112,6 @@ if __name__ == "__main__":
     server = serverClass()
     server.listen((args.server_addr, args.port))
     server.loop(args.clients, args.max_clients)
-    server.merged_file()
+    server.merged_files()
     # server.multicast()
     print("Terminating...")
