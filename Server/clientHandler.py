@@ -1,17 +1,11 @@
 from threading import Thread
-from tcp_latency import measure_latency
+from utils import BUFFER_SIZE, SEPARATOR 
 import os
 import errno
 import tqdm
 
-
-# receive 4096 bytes each time
-BUFFER_SIZE = 4096
-SEPARATOR = "<SEPARATOR>"
-
-
 class ClientHandler(Thread):
-    def __init__(self, conn, ip, port) -> None:
+    def __init__(self, conn, ip, port):
         Thread.__init__(self)
         self.conn = conn
         self.ip = ip
@@ -43,9 +37,7 @@ class ClientHandler(Thread):
             unit_scale=True,
             unit_divisor=1024,
         )
-
         # Measure network Latency
-
         with open(completeDir, "wb") as f:
             while True:
                 # read 1024 bytes from the socket (receive)

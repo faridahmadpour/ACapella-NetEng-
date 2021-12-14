@@ -37,17 +37,5 @@ class MultiCastSender:
         sender.close()
 
     def read_file(self, file_addr):
-
         with open(file_addr, "rb") as merged_file:
             return merged_file.read()
-
-        # def main(argv):
-        #     if len(argv) < 5:
-        #         help_and_exit(argv[0])
-
-        #     hostipaddr = argv[1]
-        #     mcgrpipaddr = argv[2]
-        #     mcport = int(argv[3])
-        #     msg = argv[4]
-
-        #     mc_send(hostipaddr, mcgrpipaddr, mcport, msg.encode())
