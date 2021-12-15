@@ -1,11 +1,9 @@
-import socket
-import threading, wave, pyaudio, time
-import math
-
+import socket, wave, pyaudio, time, math
 
 class MultiCastSender:
     BUFF_SIZE = 65536
     CHUNK = 10*1024
+
     def __init__(self, host_ip, mcgrp_ip, mc_port):
         self.host_ip = host_ip
         self.mcgrp_ip = mcgrp_ip

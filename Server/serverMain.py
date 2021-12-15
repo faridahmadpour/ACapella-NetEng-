@@ -7,11 +7,7 @@ from utils import handler
 from pydub import AudioSegment
 from tqdm import tqdm
 from signal import signal, SIGINT
-import traceback
-import time
-import sys
-import os
-
+import traceback, time, sys, os
 
 class serverClass:
     def __init__(self):
@@ -121,14 +117,8 @@ class serverClass:
             print("Exporting resulting audio file to merged.mp3")
         final_clip.export("merged.mp3", format=final_clip_extension)
 
-    def multicast(self):
-        mc_sender = MultiCastSender(
-            host_ip=socket.gethostbyname(socket.getfqdn()),
-            mcgrp_ip="",
-            mc_port="",
-            file_addr="merged.mp3",
-            msg_buf=None
-        )
+    def multicast(self, host_ip, mcgrp_ip, mc_port):
+        mc_sender = MultiCastSender(host_ip, mcgrp_ip, mc_port)
         mc_sender.mc_send()
 
 
@@ -145,10 +135,14 @@ if __name__ == "__main__":
                         help="Port Number", default=8080)
     parser.add_argument("-c", "--max-clients",
                         help="Number of clients", default=2)
+    parser.add_argument("-mip", "--mcgrp-ip",
+                        help="IP Address Of The Group Reciving MultiCast Messages")
+    parser.add_argument("-mp", "--mc-port",
+                        help="Port Number Of The Group Reciving MultiCast Messages")
     args = parser.parse_args()
     server = serverClass()
     server.listen((args.server_addr, int(args.port)))
     server.loop(int(args.max_clients))
     server.merged_files(verbose=1)
-    # server.multicast()
+    server.multicast(host_ip=args.server_addr, mcgrp_ip=args.mcgrp_ip, mc_port=int(args.mc_port))
     print("Terminating...")

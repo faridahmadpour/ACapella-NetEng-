@@ -1,8 +1,7 @@
 from threading import Thread
+import os, tqdm, errno
 from utils import BUFFER_SIZE, SEPARATOR 
-import os
-import errno
-import tqdm
+
 
 class ClientHandler(Thread):
     def __init__(self, conn, ip, port):
