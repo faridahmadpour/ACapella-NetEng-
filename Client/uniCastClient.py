@@ -2,10 +2,10 @@ from argparse import ArgumentParser
 import socket, tqdm, os
 
 
-SEPARATOR = "<SEPARATOR>"
-BUFFER_SIZE = 4096  # send 4096 bytes each time step
-
 class UniCastClient:
+    SEPARATOR = "<SEPARATOR>"
+    BUFFER_SIZE = 4096  # send 4096 bytes each time step
+    
     def __init__(self, remote_ip, remote_port, filename):
         # the ip address or hostname of the server, the receiver
         self.remote_ip = remote_ip
@@ -25,14 +25,14 @@ class UniCastClient:
 
     def loop(self):
         # send the filename and filesize
-        self.__socket.send(f"{self.filename}{SEPARATOR}{self.filesize}".encode())
+        self.__socket.send(f"{self.filename}{UniCastClient.SEPARATOR}{self.filesize}".encode())
         # start sending the file
         progress = tqdm.tqdm(
             range(self.filesize), f"Sending {self.filename}", unit="B", unit_scale=True, unit_divisor=1024)
         with open(self.filename, "rb") as f:
             while True:
                 # read the bytes from the file
-                bytes_read = f.read(BUFFER_SIZE)
+                bytes_read = f.read(UniCastClient.BUFFER_SIZE)
                 if not bytes_read:
                     # file transmitting is done
                     break
@@ -57,6 +57,6 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file",
                         help="Audio File To Be Send")
     args = parser.parse_args()
-    client = UniCastClient()
+    client = UniCastClient(args.remote_ip, int(args.remote_port), args.file)
     client.get_connected()
-    client.loop(args.remote_ip, int(args.remote_port), args.file)
+    client.loop()
