@@ -48,9 +48,6 @@ class MultiCastReceiver:
         with open("merged.wav", "wb") as f:
             while True:
                 frame, _= self.__receiver.recvfrom(MultiCastReceiver.BUFF_SIZE)
-                if not frame:
-                        # nothing is received file transmitting is done
-                        break
                 f.write(frame)
         self.__receiver.close()
         print('Audio Saved')

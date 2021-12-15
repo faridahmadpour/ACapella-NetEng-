@@ -44,7 +44,6 @@ class MultiCastSender:
             data = wf.readframes(MultiCastSender.CHUNK)
             sender.sendto(data, mcgrp)
             time.sleep(0.001) # Here you can adjust it according to how fast you want to send data keep it > 0
-            print(cnt)
             if cnt > (wf.getnframes()/MultiCastSender.CHUNK):
                 break
             cnt += 1
