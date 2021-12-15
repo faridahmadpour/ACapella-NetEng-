@@ -10,6 +10,7 @@ from signal import signal, SIGINT
 import traceback
 import time
 import sys
+import os
 
 
 class serverClass:
@@ -83,6 +84,7 @@ class serverClass:
         finally:
             map(lambda x: x.join(), self.clientList)
             self.tcpServer.close()
+            time.sleep(5.0)
 
     def merged_files(self, verbose=1):
         """
@@ -97,7 +99,7 @@ class serverClass:
         files = os.listdir(completeDir)
         files.sort()
         for index, value in enumerate(files):
-            files[index] = os.path.join(os.getcwd(), value)
+            files[index] = os.path.join(os.getcwd(), "files", value)
         clips = []
         # wrap the audio clip paths with tqdm if verbose
         files = tqdm(files, "Reading audio file") if verbose else files
@@ -148,6 +150,6 @@ if __name__ == "__main__":
     server = serverClass()
     server.listen((args.server_addr, int(args.port)))
     server.loop(int(args.max_clients))
-    server.merged_files()
+    server.merged_files(verbose=0)
     # server.multicast()
     print("Terminating...")
