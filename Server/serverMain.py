@@ -1,11 +1,15 @@
 from clientHandler import *
 from socket import AF_INET, SOCK_STREAM, socket, SOL_SOCKET, SO_KEEPALIVE, TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT, IPPROTO_TCP, SO_REUSEADDR
+from socket import error as SocketError
 from argparse import ArgumentParser
 from multiCastSender import MultiCastSender
 from utils import handler
 from pydub import AudioSegment
 from tqdm import tqdm
 from signal import signal, SIGINT
+import traceback
+import time
+import sys
 
 
 class serverClass:
@@ -17,52 +21,70 @@ class serverClass:
     def listen(self, sock_addr):
         # Creates a listener socket
         self.sock_addr = sock_addr  # Is A Tuple (TCP_IP, TCP_PORT)
-        self.tcpServer = socket(AF_INET, SOCK_STREAM)  # TCP Socket
-        self.tcpServer.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self.tcpServer.bind(sock_addr)
-        # Enabling our server to accept connections
-        # 5 here is the number of unaccepted connections that
-        # The system will allow before refusing new connections
-        self.tcpServer.listen(5)
-        print("Socket %s:%d is In Listening State" %
-              (self.tcpServer.getsockname()))
+        try:
+            self.tcpServer = socket(AF_INET, SOCK_STREAM)  # TCP Socket
+            self.tcpServer.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+            self.tcpServer.bind(sock_addr)
+            # Enabling our server to accept connections
+            # 5 here is the number of unaccepted connections that
+            # The system will allow before refusing new connections
+            self.tcpServer.listen(5)
+            print("Socket %s:%d is In Listening State" %
+                  (self.tcpServer.getsockname()))
+        except SocketError as err:
+            print(f'Socket connect failed! : {err}')
+            traceback.print_exc()
+            time.sleep(5.0)
+            sys.exit(1)
 
     def loop(self, max_clients: int):
         # Tell Python to run the handler() function when SIGINT is recieved
         signal(SIGINT, handler)
         # Server's main loop. Creates clientHandler's for each connecter
         print("Falling to Serving Loop, Press Ctrl+C To Terminate...")
-        clients = []
-        while True:
-            if len(clients) == max_clients:
-                break
-            conn = None  # Each Client Socket To Be Stored In The Proper Object of Class ClientHandler
-            print("Awaiting New Clients...")
-            # accept connection if there is any
-            # client_socket[Socket Object], client_address[Tuple Of Client (IP, PORT)]
-            (conn, (ip, port)) = self.tcpServer.accept()
-            # Set TCP KeepAlive Options
-            after_idle_sec = 1
-            interval_sec = 2
-            max_fails = 3
-            conn.setsockopt(
-                SOL_SOCKET, SO_KEEPALIVE, 1
-            )
-            conn.setsockopt(
-                IPPROTO_TCP, TCP_KEEPIDLE, after_idle_sec
-            )
-            conn.setsockopt(
-                IPPROTO_TCP, TCP_KEEPINTVL, interval_sec
-            )
-            conn.setsockopt(
-                IPPROTO_TCP, TCP_KEEPCNT, max_fails
-            )
-            client = ClientHandler(conn, ip, port)
-            self.clientList.append(client)
-            clients.append(conn)
-            client.start()
-        map(lambda x: x.join(), self.clientList)
-        self.tcpServer.close()
+        connected_clients = 0 # To Save Our Connections
+        try:
+            while True:
+                if connected_clients == max_clients:
+                    print("Maximum number of clients reached")
+                    break
+                conn = None  # Each Client Socket To Be Stored In The Proper Object of Class ClientHandler
+                print("Awaiting New Clients...")
+                # accept connection if there is any
+                # client_socket[Socket Object], client_address[Tuple Of Client (IP, PORT)]
+                (conn, (ip, port)) = self.tcpServer.accept()
+                # Set TCP KeepAlive Options
+                after_idle_sec = 1
+                interval_sec = 2
+                max_fails = 3
+                conn.setsockopt(
+                    SOL_SOCKET, SO_KEEPALIVE, 1
+                )
+                conn.setsockopt(
+                    IPPROTO_TCP, TCP_KEEPIDLE, after_idle_sec
+                )
+                conn.setsockopt(
+                    IPPROTO_TCP, TCP_KEEPINTVL, interval_sec
+                )
+                conn.setsockopt(
+                    IPPROTO_TCP, TCP_KEEPCNT, max_fails
+                )
+                client = ClientHandler(conn, ip, port)
+                self.clientList.append(client)
+                client.start()
+                # keep track connected clients
+                connected_clients += 1
+        except KeyboardInterrupt:
+            print("Ctrl+C Issued Closing Server...")
+        except SocketError as err:
+            print(f'Socket connect failed! : {err}')
+            traceback.print_exc()
+            time.sleep(5.0)
+        finally:
+            if conn is not None:
+                conn.close()
+            map(lambda x: x.join(), self.clientList)
+            self.tcpServer.close()
 
     def merged_files(self, verbose=1):
         """
@@ -100,22 +122,6 @@ class serverClass:
             print("Exporting resulting audio file to merged.mp3")
         final_clip.export("merged.mp3", format=final_clip_extension)
 
-        # completeDir = os.path.join(os.getcwd(), "files")
-        # files = os.listdir(completeDir)
-        # files.sort()
-        # data = []
-        # for clip in files:
-        #     clip = os.path.join("./files", clip)
-        #     w = wave.open(clip, "rb")
-        #     data.append([w.getparams(), w.readframes(w.getnframes())])
-        #     w.close()
-        # output = wave.open("merged.mp3")
-        # output.setparams(data[0][0])
-        # for i in range(len(data)):
-        #     output.writeframes(data[i][1])
-        # output.close()
-
-
     def multicast(self):
         mc_sender = MultiCastSender(
             host_ip=socket.gethostbyname(socket.getfqdn()),
@@ -128,7 +134,8 @@ class serverClass:
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Tic tac toe game server")
+    # setup argument parsing 
+    parser = ArgumentParser(description="ACapella-NetEng Server")
     parser.add_argument(
         "-a",
         "--server-addr",
