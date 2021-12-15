@@ -47,7 +47,6 @@ class serverClass:
         try:
             while True:
                 if connected_clients == max_clients:
-                    print("Maximum number of clients reached")
                     break
                 conn = None  # Each Client Socket To Be Stored In The Proper Object of Class ClientHandler
                 print("Awaiting New Clients...")
