@@ -112,10 +112,10 @@ class serverClass:
             # ofc order is important
             final_clip = final_clip + clips[i]
         # export the final clip
-        final_clip_extension = get_file_extension("merged.mp3")
+        final_clip_extension = get_file_extension("merged.wav")
         if verbose:
-            print("Exporting resulting audio file to merged.mp3")
-        final_clip.export("merged.mp3", format=final_clip_extension)
+            print("Exporting resulting audio file to merged.wav")
+        final_clip.export("merged.wav", format=final_clip_extension)
 
     def multicast(self, host_ip, mcgrp_ip, mc_port):
         mc_sender = MultiCastSender(host_ip, mcgrp_ip, mc_port)
