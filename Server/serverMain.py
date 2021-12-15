@@ -149,6 +149,6 @@ if __name__ == "__main__":
     server = serverClass()
     server.listen((args.server_addr, int(args.port)))
     server.loop(int(args.max_clients))
-    server.merged_files(verbose=0)
+    server.merged_files(verbose=1)
     # server.multicast()
     print("Terminating...")
