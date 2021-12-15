@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
-import socket, os, struct
-import threading, pyaudio, time, queue
+import socket, os, struct, queue
 
 class MultiCastReceiver:
     BUFF_SIZE = 65536
@@ -43,37 +42,19 @@ class MultiCastReceiver:
             )
         self.__receiver.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
         self.__receiver.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF, MultiCastReceiver.BUFF_SIZE)
-        p = pyaudio.PyAudio()
-        stream = p.open(format=p.get_format_from_width(2),
-                    channels=2,
-                    rate=44100,
-                    output=True,
-                    frames_per_buffer=MultiCastReceiver.CHUNK)
         # Receive the mssage
         DATA_SIZE, _= self.__receiver.recvfrom(MultiCastReceiver.BUFF_SIZE)
         DATA_SIZE = int(DATA_SIZE.decode())
-        q = queue.Queue(maxsize=DATA_SIZE)
-        def getAudioData():
+        with open("merged.wav", "wb") as f:
             while True:
                 frame, _= self.__receiver.recvfrom(MultiCastReceiver.BUFF_SIZE)
-                q.put(frame)
-                print('[Queue size while loading]...', q.qsize())
-        t1 = threading.Thread(target=getAudioData, args=())
-        t1.start()
-        time.sleep(5)
-        DURATION = DATA_SIZE*MultiCastReceiver.CHUNK/44100
-        print('[Now Playing]... Data', DATA_SIZE, '[Audio Time]:', DURATION , 'seconds')
-        try:
-            while True:
-                frame = q.get()
-                stream.write(frame)
-                print('[Queue size while playing]...', q.qsize(), '[Time remaining...]', round(DURATION), 'seconds')
-                DURATION -= MultiCastReceiver.CHUNK / 44100
-        except:
-            self.__receiver.close()
-            t1.join()
-            print('Audio closed')
-            os._exit(1)
+                if not frame:
+                        # nothing is received file transmitting is done
+                        break
+                f.write(frame)
+        self.__receiver.close()
+        print('Audio Saved')
+        os._exit(1)
 
 
 if __name__ == "__main__":

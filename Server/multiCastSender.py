@@ -1,4 +1,4 @@
-import socket, wave, pyaudio, time, math
+import socket, wave, time, math
 
 class MultiCastSender:
     BUFF_SIZE = 65536
@@ -33,12 +33,6 @@ class MultiCastSender:
         # (multicast group ip address, send-to port nubmer)
         mcgrp = (self.mcgrp_ip, self.mc_port)
         wf = wave.open("merged.wav")
-        p = pyaudio.PyAudio()
-        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                    channels=wf.getnchannels(),
-                    rate=wf.getframerate(),
-                    input=True,
-                    frames_per_buffer=MultiCastSender.CHUNK)
         data = None
         sample_rate = wf.getframerate()
         DATA_SIZE = math.ceil(wf.getnframes()/MultiCastSender.CHUNK)
@@ -47,12 +41,12 @@ class MultiCastSender:
         sender.sendto(DATA_SIZE, mcgrp)
         cnt = 0
         while True:
-                data = wf.readframes(MultiCastSender.CHUNK)
-                sender.sendto(data, mcgrp)
-                time.sleep(0.001) # Here you can adjust it according to how fast you want to send data keep it > 0
-                print(cnt)
-                if cnt > (wf.getnframes()/MultiCastSender.CHUNK):
-                    break
-                cnt += 1
+            data = wf.readframes(MultiCastSender.CHUNK)
+            sender.sendto(data, mcgrp)
+            time.sleep(0.001) # Here you can adjust it according to how fast you want to send data keep it > 0
+            print(cnt)
+            if cnt > (wf.getnframes()/MultiCastSender.CHUNK):
+                break
+            cnt += 1
         print('SENT...')
         sender.close()
