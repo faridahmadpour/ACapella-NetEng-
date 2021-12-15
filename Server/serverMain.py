@@ -81,8 +81,6 @@ class serverClass:
             traceback.print_exc()
             time.sleep(5.0)
         finally:
-            if conn is not None:
-                conn.close()
             map(lambda x: x.join(), self.clientList)
             self.tcpServer.close()
 
@@ -99,7 +97,7 @@ class serverClass:
         files = os.listdir(completeDir)
         files.sort()
         for index, value in enumerate(files):
-            files[index] = os.path.join("./files", value)
+            files[index] = os.path.join(os.getcwd(), value)
         clips = []
         # wrap the audio clip paths with tqdm if verbose
         files = tqdm(files, "Reading audio file") if verbose else files
