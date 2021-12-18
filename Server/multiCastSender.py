@@ -1,4 +1,5 @@
 import socket, wave, time, math
+from argparse import ArgumentParser
 
 class MultiCastSender:
     BUFF_SIZE = 65536
@@ -49,3 +50,24 @@ class MultiCastSender:
             cnt += 1
         print('SENT...')
         sender.close()
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser(description="ACapella-NetEng Multicast Sender")
+    parser.add_argument(
+        "-a",
+        "--server-addr",
+        help="Listening address. Default localhost.",
+        default="0.0.0.0"
+    )
+    parser.add_argument("-mip", "--mcgrp-ip",
+                        help="IP Address Of The Group Reciving MultiCast Messages")
+    parser.add_argument("-mp", "--mc-port",
+                        help="Port Number Of The Group Reciving MultiCast Messages")
+    args = parser.parse_args()
+    mc_sender = MultiCastSender(
+        host_ip=args.server_addr,
+        mcgrp_ip=args.mcgrp_ip,
+        mc_port=int(args.mc_port)
+        )
+    
