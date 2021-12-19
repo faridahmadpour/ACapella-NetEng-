@@ -1,7 +1,8 @@
 from argparse import ArgumentParser
 import socket, os, struct, queue
 from pyaudio import PyAudio
-
+import threading
+import time
 class MultiCastReceiver:
     BUFF_SIZE = 65536
     CHUNK = 10*1024
@@ -45,7 +46,7 @@ class MultiCastReceiver:
         self.__receiver.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF, MultiCastReceiver.BUFF_SIZE)
         paud = PyAudio()
         stream = paud.open(
-            format=p.get_format_from_width(2),
+            format=paud.get_format_from_width(2),
 			channels=2,
 			rate=44100,
 			output=True,
@@ -59,21 +60,22 @@ class MultiCastReceiver:
 
         def getAudioData():
             while True:
-                frame,_= client_socket.recvfrom(self.BUFF_SIZE)
+                frame,_= self.__receiver.recvfrom(self.BUFF_SIZE)
                 fram_queue.put(frame)
                 print('[Queue size while loading]...',fram_queue.qsize())
 	    
+        
         t1 = threading.Thread(target=getAudioData, args=())
-	    t1.start()
-	    time.sleep(5)
+        t1.start()
+        time.sleep(5)
 
         DURATION = DATA_SIZE*(self.CHUNK)/44100
-	    print('[Now Playing]... Data',DATA_SIZE,'[Audio Time]:',DURATION ,'seconds')
-	    while True:
+        print('[Now Playing]... Data',DATA_SIZE,'[Audio Time]:',DURATION ,'seconds')
+        while True:
             frame = fram_queue.get()
             stream.write(frame)
-            print('[Queue size while playing]...',q.qsize(),'[Time remaining...]',round(DURATION),'seconds')
-            DURATION-=CHUNK/44100
+            print('[Queue size while playing]...',fram_queue.qsize(),'[Time remaining...]',round(DURATION),'seconds')
+            DURATION-=self.CHUNK/44100
         
         self.__receiver.close()
         print('Streaming Audio Finished')
